@@ -13,6 +13,7 @@
 
 #define MAXARGS 10
 
+
 struct cmd {
   int type;
 };
@@ -48,6 +49,8 @@ struct backcmd {
   int type;
   struct cmd *cmd;
 };
+
+//
 
 int fork1(void);  // Fork but panics on failure.
 void panic(char*);
@@ -164,8 +167,8 @@ main(void)
         printf(2, "cannot cd %s\n", buf+3);
       continue;
     }
-    if(fork1() == 0)
-      runcmd(parsecmd(buf));
+    if(fork1() == 0){
+      runcmd(parsecmd(buf));}
     wait();
   }
   exit();

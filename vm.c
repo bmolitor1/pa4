@@ -10,6 +10,7 @@
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
 
+
 // Set up CPU's kernel segment descriptors.
 // Run once on entry on each CPU.
 void
@@ -383,6 +384,221 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
     va = va0 + PGSIZE;
   }
   return 0;
+}
+
+//added for assignment 3
+struct sharedPage{
+  int npages;
+  int counter;
+  void* phys_addr_[MAX_NPAGES]; //max no of pages is 8 here
+};
+
+
+struct sharedPage sp_array[MAX_KEYS];// array struct sharedPage for max number of keys
+
+//-----------Helper functions -------------//
+
+//initialize page - zero filled initially
+void initialize_page(){
+ for (int i=0;i<MAX_KEYS;i++){
+    sp_array[i].counter=0;}
+}
+
+//add page--updates page array after allocating 
+int add_page(int key, int n, void* phys_addr[MAX_NPAGES]){
+  if(key<0 || MAX_KEYS<=key || n<0 || MAX_NPAGES<n){
+	return -1;
+  }
+  sp_array[key].npages = n;
+  sp_array[key].counter=1;
+  for(int i=0; i<n; i++){
+	sp_array[key].phys_addr_[i] = phys_addr[i];
+  }
+  return 0;
+}
+int get_counter(int key){
+  return (key<0||MAX_KEYS<=key)?-1 :sp_array[key].counter;
+}
+
+//------------Added my versions of allocate, dealloacte and free to not mess up the allocvm, etc. codes above -----------------//
+
+//allocate page
+int allocate_page(pde_t *pgdir, uint oldsp, uint newsp, uint sz, void *phys_addr[MAX_NPAGES]){
+  //kind of just based on allocvm code above
+
+  char *mem;
+  uint a;
+  int i;
+  //a = newsp;
+  //attempt at fixing proc issue
+  if(oldsp & 0xFFF || newsp & 0xFFF || oldsp > ENDOFSTACK || newsp <sz){
+	return 0;}
+
+  for(i=0,a = newsp; a<oldsp; a+= PGSIZE, i++){
+    mem= kalloc();
+    if(mem==0){
+	cprintf("Error - allocate page out of memory\n");
+	deallocate_page(pgdir, newsp, oldsp);
+	return 0;
+    }
+    memset(mem, 0, PGSIZE);
+    mappages(pgdir, (char*)a, PGSIZE, V2P(mem), PTE_W|PTE_U);
+    phys_addr[i]=mem;
+  }
+  return newsp;
+}
+//deallocate page
+int deallocate_page(pde_t *pgdir, uint oldsp, uint newsp){
+  pte_t *pte;
+  uint a;
+  uint pa;
+
+  if(newsp<=oldsp){
+	return oldsp;}
+  a = (uint)PGROUNDDOWN(newsp-PGSIZE);
+  for(; oldsp<=a; a-=PGSIZE){
+   pte = walkpgdir(pgdir, (char*)a, 0);
+   if(pte && (*pte & PTE_P) != 0){
+	pa = PTE_ADDR(*pte);
+	if(pa ==0)
+	  panic("kfree");
+	kfree((char*)pa);
+	*pte = 0;
+   }
+  }
+  return newsp;
+}
+
+//map vp 
+int map_page(pde_t *pgdir, uint oldsp, uint newsp, uint sz, void **phys_addr){
+  uint a;
+  int i;
+
+  if(oldsp & 0xFFF || newsp & 0xfff || oldsp > ENDOFSTACK || newsp <sz){
+	return 0;}
+
+  for(i=0, a=newsp; a < oldsp; a+=PGSIZE, i++){
+    mappages(pgdir, (char*)a, PGSIZE, V2P(phys_addr[i]), PTE_W|PTE_U);
+
+  }
+  return newsp;
+}
+//free page
+int free_page(pde_t *pgdir){
+
+	uint i;
+	//pde_t *pgdir;
+    struct proc *proc = myproc();
+    
+    pgdir = proc->pgdir;
+ 	uint sproc = proc-> sproc;
+
+    if(pgdir == 0)
+    	panic("free_page: no pgdir");
+    deallocate_page(pgdir, sproc, 0);
+    for(i = 0; i < MAX_NPAGES; i++){
+    	if(pgdir[i] & PTE_P){
+    		char * v = P2V(PTE_ADDR(pgdir[i]));
+    		kfree(v);
+      	}
+    }
+	kfree((char*)pgdir);
+    
+	
+	return 0;
+}
+
+//remove page
+int remove_page(){
+	//to be implemented
+	return -1;
+}
+
+void* getSharedPage(int key, int n){
+  pde_t *pgdir;
+  struct proc *proc = myproc();
+  void *phys_addr[MAX_NPAGES];
+  int i; 
+  uint sproc;
+
+  cprintf("Get Shared Page syscall(%d, %d)\n", key, n);
+
+  if(key<0 || key>=MAX_KEYS || n<0 || MAX_NPAGES < n){
+	cprintf("Key invalid\n\n");
+	return (void*)-1;
+  }
+  //idead here -> allocate -> add page -> map to a virtual address -> return virtual address
+  pgdir = proc->pgdir;
+  sproc = proc-> sproc;
+  if(proc->shm_key_mask >>key &1){
+	return proc->shm_va[key];}
+
+
+  if(sp_array[key].counter==0){
+   sproc = allocate_page(pgdir, sproc, sproc-n * PGSIZE, proc->sz, phys_addr);
+    if(sproc==0){
+	return (void*)-1;}
+    proc->shm_va[key] = (void*)sproc;
+    add_page(key, n, phys_addr);
+  } else{
+    for(i=0;i<n;i++){
+	phys_addr[i]=sp_array[key].phys_addr_[i];
+    }
+
+    n = sp_array[key].npages;
+
+    if((sproc=map_page(pgdir, sproc, sproc-n *PGSIZE, proc->sz, phys_addr))==0){		return (void*)-1;}
+
+    //sp_array[key].counter++;
+    proc->shm_va[key] = (void*)sproc;
+    sp_array[key].counter++;
+  }
+  proc->sproc = sproc;
+  proc->shm_key_mask |= 1 <<key;  
+  return (void*)sproc;
+}
+
+
+int freeSharedPage(int key){
+    pde_t *pgdir;
+    struct proc *proc = myproc();
+    
+    pgdir = proc->pgdir;
+ 	//uint sproc = proc-> sproc;
+ 	
+ 	//make sure key exists
+ 	/*if(key>=MAX_KEYS || key < 0){
+ 		cprintf("Key out of range\n");
+ 		return -1;
+ 	}*/
+ 	
+ 	//check if process is mapped to physical addresses.
+ 	// so shm_va[key] has the stack pointer/base register thing for the virtual memory
+ 	// and sproc is the beginning of the stack 
+ 	/*if(proc->shm_va[key] != (void*)sproc){ //proc->shm_va[key]==0){ //|| 
+ 		cprintf("process does not have access to key\n");
+ 		return -1;
+	}*/
+ 	
+ 	sp_array[key].counter--;
+ 	
+	if(sp_array[key].counter==0){
+		/*for(int i = 0; i < MAX_NPAGES;i++){
+			sp_array[key].phys_addr_[i]=0;
+		}*/ //idk about this aha
+		free_page(pgdir);
+		return 0; //this means it's hella free, the shared page has no references
+	}else if (sp_array[key].counter>0){
+		//so now the bigger question, how do we dereference a singular process
+		//idk we could just make
+		proc->shm_va[key] = (void*)-1;
+		return 0;
+	}else{
+		sp_array[key].counter++;
+		return -1;
+	}
+	sp_array[key].counter++;
+	return -1;
 }
 
 //PAGEBREAK!

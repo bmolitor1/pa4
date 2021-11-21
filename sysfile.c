@@ -35,6 +35,10 @@ argfd(int n, int *pfd, struct file **pf)
   return 0;
 }
 
+//count traps global variables added here for count function
+//int trap_counter[24]; int initFlag=0; 
+//void counter(int syscall);
+
 // Allocate a file descriptor for the given file.
 // Takes over file reference from caller on success.
 static int
@@ -440,5 +444,34 @@ sys_pipe(void)
   }
   fd[0] = fd0;
   fd[1] = fd1;
+  return 0;
+}
+
+//count traps global variables added here for count function
+int trap_counter[23]; int initFlag=0;
+void counter(int syscall);
+
+
+void counter(int syscall){
+  struct proc *curproc = myproc();
+
+  if(initFlag==0)
+    for(int i =0; i<23;i++)
+	curproc->trapCount[i]=0;
+  
+  initFlag=1;
+  curproc->trapCount[syscall]++;
+
+}
+
+int getCountTraps(void) {
+  int * counts; int size; int i;
+  argint(1, &size);
+  argptr(0, (void*)&counts, size);
+  struct proc *curproc = myproc();
+
+  for(i=0;i<23;i++){
+    counts[i] = curproc->trapCount[i];
+  }
   return 0;
 }

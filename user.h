@@ -23,6 +23,11 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int trace(int); //added
+int getCountTraps(int *counts, int size);
+void *getSharedPage(int key, int n);
+int freeSharedPage(int key);
+int get_counter(int key);
 
 // ulib.c
 int stat(const char*, struct stat*);

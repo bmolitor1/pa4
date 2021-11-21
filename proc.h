@@ -49,6 +49,10 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  int trapCount[23]; 		//used in sysfile.c to update sys call count for each system call
+  uint sproc;
+  uint shm_key_mask;
+  void* shm_va[MAX_KEYS];
 };
 
 // Process memory is laid out contiguously, low addresses first:

@@ -185,6 +185,16 @@ void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
+void 		initialized();
+//int 		add_page(int, int, void* uint); //possible error
+//int 		allocate_page(pde_t*, uint, uint, uint, void* uint);
+int 		deallocate_page(pde_t*, uint, uint);
+//int		free_page();
+//int		remove_page();
+void*		getSharedPage(int, int);
+int		freeSharedPage(int);
+void 		initialize_page(void);
+int 		get_counter(int);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

@@ -88,6 +88,8 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->sproc = ENDOFSTACK;
+  p->shm_key_mask =0;
 
   release(&ptable.lock);
 
