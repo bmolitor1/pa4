@@ -183,6 +183,7 @@ UPROGS=\
 	_zombie\
 	_countTraps\
 	_test_as3\
+	_learn\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
