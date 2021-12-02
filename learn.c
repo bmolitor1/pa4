@@ -1,7 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-//#include <fs.c>
+//#include <stdio.h>
+//#include <stdlib.h>
+#include "types.h"
+#include "stat.h"
+#include "user.h"
+#include "fcntl.h"
 
 int main(){
-	print("hello!\n);
+	printf(0,"hello!\n");
+	exit();
 }

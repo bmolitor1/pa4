@@ -108,6 +108,7 @@ extern int getCountTraps(void);
 extern int sys_getSharedPage(void);
 extern int sys_freeSharedPage(void);
 extern int sys_get_counter(void);
+extern int sys_inodeWalker(void);
 
 
 
@@ -137,6 +138,7 @@ static int (*syscalls[])(void) = {
 [SYS_getSharedPage]  sys_getSharedPage,
 [SYS_freeSharedPage] sys_freeSharedPage,
 [SYS_get_counter]    sys_get_counter,
+[SYS_inodeWalker]	 sys_inodeWalker,
 };
 
 

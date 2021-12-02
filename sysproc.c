@@ -120,3 +120,12 @@ int sys_get_counter(void){
   }
   return get_counter(key);
 }
+
+int sys_inodeWalker(void){
+	int dev;
+	if(argint(0, &dev)<0){
+		return -1;
+  	}
+	inodeWalker(dev);
+	return 0;
+}

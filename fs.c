@@ -668,3 +668,34 @@ nameiparent(char *path, char *name)
 {
   return namex(path, 1, name);
 }
+
+//struct inode*
+void inodeWalker(uint dev)//, short type)
+{
+  cprintf("The following inodes are in use: \n");
+  int inum;
+  struct buf *bp;
+  struct dinode *dip;
+
+  for(inum = 1; inum < sb.ninodes; inum++){
+    bp = bread(dev, IBLOCK(inum, sb));
+    dip = (struct dinode*)bp->data + inum%IPB;
+    if(dip->type != 0){  // a not free inode
+      //memset(dip, 0, sizeof(*dip)); //not gonna mess with mem
+      //dip->type = type;
+      //log_write(bp);   // mark it allocated on the disk
+      
+      // now we gotta print out whatever info we want
+      cprintf("Device: %d\t Inode: %d\n", dev, inum);
+      
+      //brelse(bp);
+      //return iget(dev, inum);
+    }
+    brelse(bp);
+  }
+  if(dev<10){
+  	dev++;
+  	inodeWalker(dev);
+  }
+  //panic("ialloc: no inodes");
+}

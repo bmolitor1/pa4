@@ -28,6 +28,7 @@ int getCountTraps(int *counts, int size);
 void *getSharedPage(int key, int n);
 int freeSharedPage(int key);
 int get_counter(int key);
+int inodeWalker(uint dev);
 
 // ulib.c
 int stat(const char*, struct stat*);
