@@ -7,6 +7,21 @@
 #include "mmu.h"
 #include "proc.h"
 
+/*struct inode {
+  uint dev;           // Device number
+  uint inum;          // Inode number
+  int ref;            // Reference count
+  struct sleeplock lock; // protects everything below here
+  int valid;          // inode has been read from disk?
+
+  short type;         // copy of disk inode
+  short major;
+  short minor;
+  short nlink;
+  uint size;
+  uint addrs[NDIRECT+1];
+};*/
+
 int
 sys_fork(void)
 {
@@ -137,4 +152,27 @@ int sys_directoryWalker(void){
   	}
   	return directoryWalker(point);
 	//return 0;
+}
+
+int sys_eraser(void){
+	int inum;
+	if(argint(0, &inum)<0){
+		return -1;
+  	}
+  	eraser(inum);
+  	return 0;
+}
+
+int sys_repair_fs(void){
+	void* ip = (void *)10;
+	if(argptr(0,ip,10)<0){ //sizeof(struct inode)
+		return -1;
+	}
+	repair_fs(ip);
+	return 0;
+}
+
+int sys_comp_two_walkers(void){
+	comp_two_walkers();
+	return 0;
 }

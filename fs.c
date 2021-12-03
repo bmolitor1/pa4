@@ -716,10 +716,10 @@ int directoryWalker(char *point){
     //cprintf("hello");
 	return -1; }
   //de.inum = ip->inum;
-  cprintf("please work: %s\n",point);
+  //cprintf("please work: %s\n",point);
   //de.name=point;
   readi(ip, (char *)&de, 0, sizeof(de));
-  cprintf("idk bud: %s\n", de.name);
+  //cprintf("idk bud: %s\n", de.name);
   
   
   //for(i =0; i<DIRSIZ; i++){
@@ -733,7 +733,7 @@ int directoryWalker(char *point){
 
 	if((strncmp(de.name,".",14)==0)){
 	  track_directories[de.inum]=1;
-	  cprintf("/%s(inode: %d)\n", de.name, de.inum);
+	  cprintf("/%s    (inode: %d)\n", point, de.inum);
 	  continue;
 	}
 	//track_directories[ip->inum]=1;  
@@ -757,7 +757,7 @@ int directoryWalker(char *point){
 		 iunlock(pointer);
 		 track_directories[de.inum]=1; 
 		//print directory name then pointer follows subtree: subdirectories or files
-		cprintf("/%s(inode: %d)\n", de.name, de.inum);
+		cprintf("/%s    (inode: %d)\n", de.name, de.inum);
 		//int i;
 		//for(i = 0; i <DIRSIZ; i++){
 		//	//directoryWalker((char *)de.name[i]);
@@ -769,7 +769,7 @@ int directoryWalker(char *point){
 	  if(ip->type==T_FILE){
 		iunlock(pointer);
 		track_directories[de.inum]=1;
-		cprintf("/%s(inode: %d)\n", de.name, de.inum);
+		cprintf("/%s    (inode: %d)\n", de.name, de.inum);
 	  }
 	}
     }

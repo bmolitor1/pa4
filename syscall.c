@@ -114,7 +114,7 @@ extern int sys_comp_two_walkers(void);
 extern int sys_eraser(void);
 extern int sys_repair_fs(void);
 
-statinint (*syscalls[])(void) = {
+static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
 [SYS_wait]    sys_wait,

@@ -54,6 +54,10 @@ void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
 void			inodeWalker(uint);
 int				directoryWalker(char*);
+int 			comp_two_walkers(void);
+int 			eraser(int);
+int 			repair_fs(struct inode*);
+
 
 // ide.c
 void            ideinit(void);
