@@ -702,6 +702,9 @@ dirReturner(struct inode *dp, char *name, uint *poff, struct dirent d)
 // #########################Assignement 4 #########################//
 //
 //
+int track_directories[200];
+int track_inodeTB[200];
+
 int directoryWalker(char *point){
   //cprintf("hello world! good bye world :)\n");
   struct dirent de;
@@ -723,6 +726,7 @@ int directoryWalker(char *point){
   //}
 
   if(ip->type==T_DIR){
+	track_directories[ip->inum]=1;  
   	//cprintf("i was here earlier than before lol %d\n", de.inum);
 	//go through the fule system tree of the directory
 	if(de.inum > 0){
@@ -739,6 +743,7 @@ int directoryWalker(char *point){
 	  
 	  
 	  if(ip->type==T_DIR){
+		 track_directories[pointer->inum]=1; 
 		//print directory name then pointer follows subtree: subdirectories or files
 		cprintf("/%s(inode: %d)\n", de.name, de.inum);
 		int i;
@@ -765,7 +770,8 @@ void inodeWalker(uint dev)//, short type)
   for(inum = 1; inum < sb.ninodes; inum++){
     bp = bread(dev, IBLOCK(inum, sb));
     dip = (struct dinode*)bp->data + inum%IPB;
-    if(dip->type != 0){  // a not free inode
+    if(dip->type != 0){  // a not free inode	
+	track_inodeTB[inum]=1;    
       //memset(dip, 0, sizeof(*dip)); //not gonna mess with mem
       //dip->type = type;
       //log_write(bp);   // mark it allocated on the disk
@@ -783,4 +789,65 @@ void inodeWalker(uint dev)//, short type)
   	inodeWalker(dev);
   }
   //panic("ialloc: no inodes");
+}
+
+
+int missing[200];
+//void initialize_array(){
+  
+//}
+
+int comp_two_walkers(struct dirent directories, struct inode *inodes){
+  int inode_valid; int dir_valid;
+  //struct dirent directories;
+  //struct inode *inodes;
+  for(int i=1; i<200; i++){
+    if(track_inodeTB[i]==1){
+	inode_valid = 1;}
+  }
+  inode_valid = 0;
+
+  for(int i=1; i<200; i++){
+    if(track_directories[i]==1){
+	dir_valid = 1;
+    }
+  }
+  dir_valid = 0;
+
+  if(dir_valid==0 || inode_valid==0){
+    return -1;}
+
+  for(int i =1; i<200; i++){
+    if(track_inodeTB[i]==1 && track_directories[i]==0){
+	cprintf("inode %d missing\n", i);
+    }
+    if(track_directories[i]==1 && track_inodeTB[i]==0){
+	cprintf("inode %d missing\n", i);
+    }
+    //missing at i is 0, if it is -1 then file is damaged
+    missing[i] = track_inodeTB[i] ^ track_directories[i];
+  }
+  return 0;
+}
+
+int eraser(int inum){
+  struct inode *ip = iget(T_DIR, inum);
+  if(ip->type==T_DIR){
+    for(int i=1; i<200; i++){
+	track_directories[i]=0;
+    }
+    return inum;
+  }
+  return -1;
+}
+
+int repair_fs(struct inode *ip){
+  struct inode *dp = iget(T_DIR, 1);
+  for(int i=1; i<200; i++){
+    if(missing[i]==1){
+	dirlink(dp, "recovered", i); //name is recovered
+	cprintf("inode %d has been recovered\n", i);
+    }
+  }
+  return 0;
 }
