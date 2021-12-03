@@ -711,10 +711,11 @@ int directoryWalker(char *point){
   //int i;
   struct inode *ip;
   ip = namei(point);
+  ilock(ip); //hold ip for iread function
   if(ip==0) {
     //cprintf("hello");
 	return -1; }
-  de.inum = ip->inum;
+  //de.inum = ip->inum;
   cprintf("please work: %s\n",point);
   //de.name=point;
   readi(ip, (char *)&de, 0, sizeof(de));
@@ -726,7 +727,16 @@ int directoryWalker(char *point){
   //}
 
   if(ip->type==T_DIR){
-	track_directories[ip->inum]=1;  
+    for(uint x=0; x< ip->size; x+=sizeof(de)){
+
+	if(readi(ip, (char *) &de, x, 0));
+
+	if((strncmp(de.name,".",14)==0)){
+	  track_directories[de.inum]=1;
+	  cprintf("/%s(inode: %d)\n", de.name, de.inum);
+	  continue;
+	}
+	//track_directories[ip->inum]=1;  
   	//cprintf("i was here earlier than before lol %d\n", de.inum);
 	//go through the fule system tree of the directory
 	if(de.inum > 0){
@@ -734,8 +744,9 @@ int directoryWalker(char *point){
 	  
 	  
 	  //de = dirReturner(ip, de.name, 0, de);
-	  //struct inode *pointer = dirlookup(ip, de.name, 0);
-	  cprintf("ip dev: %d\t inum: %d\t valid: %d\n", ip->dev,ip->inum,ip->valid);
+	  struct inode *pointer = dirlookup(ip, de.name, 0);
+	  ilock(pointer);
+	  //cprintf("ip dev: %d\t inum: %d\t valid: %d\n", ip->dev,ip->inum,ip->valid);
 	  //int ent;
 	  //for(ent = 0; ent <DIRSIZ; ent++){
 	  	//cprintf("directory entry %d: %s\n", ent, de.name);
@@ -743,19 +754,27 @@ int directoryWalker(char *point){
 	  
 	  
 	  if(ip->type==T_DIR){
-		 track_directories[pointer->inum]=1; 
+		 iunlock(pointer);
+		 track_directories[de.inum]=1; 
 		//print directory name then pointer follows subtree: subdirectories or files
 		cprintf("/%s(inode: %d)\n", de.name, de.inum);
-		int i;
-		for(i = 0; i <DIRSIZ; i++){
-			//directoryWalker((char *)de.name[i]);
-		}
+		//int i;
+		//for(i = 0; i <DIRSIZ; i++){
+		//	//directoryWalker((char *)de.name[i]);
+		//}
+		iunlock(ip);
+		directoryWalker(de.name);
+		ilock(ip);
 	  }
 	  if(ip->type==T_FILE){
+		iunlock(pointer);
+		track_directories[de.inum]=1;
 		cprintf("/%s(inode: %d)\n", de.name, de.inum);
 	  }
 	}
+    }
   }
+  iunlock(ip);
   return 0;
 }
 
@@ -797,7 +816,7 @@ int missing[200];
   
 //}
 
-int comp_two_walkers(struct dirent directories, struct inode *inodes){
+int comp_two_walkers(void){
   int inode_valid; int dir_valid;
   //struct dirent directories;
   //struct inode *inodes;
@@ -827,7 +846,7 @@ int comp_two_walkers(struct dirent directories, struct inode *inodes){
     //missing at i is 0, if it is -1 then file is damaged
     missing[i] = track_inodeTB[i] ^ track_directories[i];
   }
-  return 0;
+  return 1;
 }
 
 int eraser(int inum){

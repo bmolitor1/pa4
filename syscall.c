@@ -110,10 +110,11 @@ extern int sys_freeSharedPage(void);
 extern int sys_get_counter(void);
 extern int sys_inodeWalker(void);
 extern int sys_directoryWalker(void);
+extern int sys_comp_two_walkers(void);
+extern int sys_eraser(void);
+extern int sys_repair_fs(void);
 
-
-
-static int (*syscalls[])(void) = {
+statinint (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
 [SYS_wait]    sys_wait,
@@ -141,6 +142,9 @@ static int (*syscalls[])(void) = {
 [SYS_get_counter]    sys_get_counter,
 [SYS_inodeWalker]	 sys_inodeWalker,
 [SYS_directoryWalker] sys_directoryWalker,
+[SYS_comp_two_walkers] sys_comp_two_walkers,
+[SYS_eraser]	sys_eraser,
+[SYS_repair_fs] sys_repair_fs,
 };
 
 

@@ -30,6 +30,9 @@ int freeSharedPage(int key);
 int get_counter(int key);
 int inodeWalker(uint dev);
 int directoryWalker(char* point);
+int comp_two_walkers(void);
+int eraser(int inum);
+int repair_fs(struct inode *ip);
 
 // ulib.c
 int stat(const char*, struct stat*);

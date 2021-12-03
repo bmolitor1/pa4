@@ -26,3 +26,6 @@
 #define SYS_get_counter		25
 #define SYS_inodeWalker		26
 #define SYS_directoryWalker	27
+#define SYS_comp_two_walkers	28
+#define SYS_eraser		29
+#define SYS_repair_fs		30
