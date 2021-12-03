@@ -135,6 +135,6 @@ int sys_directoryWalker(void){
 	if(argstr(0, &point)<0){
 		return -1;
   	}
-  	directoryWalker(point);
-	return 0;
+  	return directoryWalker(point);
+	//return 0;
 }

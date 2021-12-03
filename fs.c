@@ -670,32 +670,83 @@ nameiparent(char *path, char *name)
 }
 
 
+struct dirent
+dirReturner(struct inode *dp, char *name, uint *poff, struct dirent d)
+{
+  uint off, inum;
+  struct dirent de;
+
+  if(dp->type != T_DIR)
+    panic("dirlookup not DIR");
+
+  for(off = 0; off < dp->size; off += sizeof(de)){
+    if(readi(dp, (char*)&de, off, sizeof(de)) != sizeof(de))
+      panic("dirlookup read");
+    if(de.inum == 0)
+      continue;
+    if(namecmp(name, de.name) == 0){
+      // entry matches path element
+      if(poff)
+        *poff = off;
+      inum = de.inum;
+      //return
+      iget(dp->dev, inum);
+      return de;
+    }
+  }
+  d = de;
+  return d;
+  //return 0;
+}
+
 // #########################Assignement 4 #########################//
 //
 //
 int directoryWalker(char *point){
+  //cprintf("hello world! good bye world :)\n");
   struct dirent de;
   //int i;
   struct inode *ip;
- // de.inum = ip->inum;
   ip = namei(point);
   if(ip==0) {
+    //cprintf("hello");
 	return -1; }
-
+  de.inum = ip->inum;
+  cprintf("please work: %s\n",point);
+  //de.name=point;
+  readi(ip, (char *)&de, 0, sizeof(de));
+  cprintf("idk bud: %s\n", de.name);
+  
+  
   //for(i =0; i<DIRSIZ; i++){
   //      cprintf("Directory name: %d \n", de.name[i]);
   //}
 
   if(ip->type==T_DIR){
+  	//cprintf("i was here earlier than before lol %d\n", de.inum);
 	//go through the fule system tree of the directory
 	if(de.inum > 0){
-	  struct inode *pointer = dirlookup(ip, de.name, 0);
-	  if(pointer->type==T_DIR){
+	//cprintf("i was here lmao\n\n");
+	  
+	  
+	  //de = dirReturner(ip, de.name, 0, de);
+	  //struct inode *pointer = dirlookup(ip, de.name, 0);
+	  cprintf("ip dev: %d\t inum: %d\t valid: %d\n", ip->dev,ip->inum,ip->valid);
+	  //int ent;
+	  //for(ent = 0; ent <DIRSIZ; ent++){
+	  	//cprintf("directory entry %d: %s\n", ent, de.name);
+	  //}
+	  
+	  
+	  if(ip->type==T_DIR){
 		//print directory name then pointer follows subtree: subdirectories or files
 		cprintf("/%s(inode: %d)\n", de.name, de.inum);
-		directoryWalker(de.name);
+		int i;
+		for(i = 0; i <DIRSIZ; i++){
+			//directoryWalker((char *)de.name[i]);
+		}
 	  }
-	  if(pointer->type==T_FILE){
+	  if(ip->type==T_FILE){
 		cprintf("/%s(inode: %d)\n", de.name, de.inum);
 	  }
 	}
