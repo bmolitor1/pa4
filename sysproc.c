@@ -129,3 +129,12 @@ int sys_inodeWalker(void){
 	inodeWalker(dev);
 	return 0;
 }
+
+int sys_directoryWalker(void){
+	char *point;
+	if(argstr(0, &point)<0){
+		return -1;
+  	}
+  	directoryWalker(point);
+	return 0;
+}

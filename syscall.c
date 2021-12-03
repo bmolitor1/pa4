@@ -109,6 +109,7 @@ extern int sys_getSharedPage(void);
 extern int sys_freeSharedPage(void);
 extern int sys_get_counter(void);
 extern int sys_inodeWalker(void);
+extern int sys_directoryWalker(void);
 
 
 
@@ -139,6 +140,7 @@ static int (*syscalls[])(void) = {
 [SYS_freeSharedPage] sys_freeSharedPage,
 [SYS_get_counter]    sys_get_counter,
 [SYS_inodeWalker]	 sys_inodeWalker,
+[SYS_directoryWalker] sys_directoryWalker,
 };
 
 

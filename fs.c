@@ -669,6 +669,40 @@ nameiparent(char *path, char *name)
   return namex(path, 1, name);
 }
 
+
+// #########################Assignement 4 #########################//
+//
+//
+int directoryWalker(char *point){
+  struct dirent de;
+  //int i;
+  struct inode *ip;
+ // de.inum = ip->inum;
+  ip = namei(point);
+  if(ip==0) {
+	return -1; }
+
+  //for(i =0; i<DIRSIZ; i++){
+  //      cprintf("Directory name: %d \n", de.name[i]);
+  //}
+
+  if(ip->type==T_DIR){
+	//go through the fule system tree of the directory
+	if(de.inum > 0){
+	  struct inode *pointer = dirlookup(ip, de.name, 0);
+	  if(pointer->type==T_DIR){
+		//print directory name then pointer follows subtree: subdirectories or files
+		cprintf("/%s(inode: %d)\n", de.name, de.inum);
+		directoryWalker(de.name);
+	  }
+	  if(pointer->type==T_FILE){
+		cprintf("/%s(inode: %d)\n", de.name, de.inum);
+	  }
+	}
+  }
+  return 0;
+}
+
 //struct inode*
 void inodeWalker(uint dev)//, short type)
 {

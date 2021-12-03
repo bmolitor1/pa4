@@ -29,6 +29,7 @@ void *getSharedPage(int key, int n);
 int freeSharedPage(int key);
 int get_counter(int key);
 int inodeWalker(uint dev);
+int directoryWalker(char* point);
 
 // ulib.c
 int stat(const char*, struct stat*);

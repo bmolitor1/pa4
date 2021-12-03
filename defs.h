@@ -53,6 +53,7 @@ int             readi(struct inode*, char*, uint, uint);
 void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
 void			inodeWalker(uint);
+int				directoryWalker(char*);
 
 // ide.c
 void            ideinit(void);

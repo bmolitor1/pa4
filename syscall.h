@@ -25,3 +25,4 @@
 #define SYS_freeSharedPage	24
 #define SYS_get_counter		25
 #define SYS_inodeWalker		26
+#define SYS_directoryWalker	27
